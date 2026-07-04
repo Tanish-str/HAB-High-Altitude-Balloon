@@ -109,11 +109,11 @@ The firmware supports transmission of:
 - Pressure
 - Altitude
 - Humidity
+- Ultraviolet (UV) Light Intensity
 - GPS Latitude
 - GPS Longitude
 - GPS Time
 - GPS Date
-- Battery Voltage
 - Signal Strength (RSSI)
 - Flight Status
 
