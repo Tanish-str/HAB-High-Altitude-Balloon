@@ -345,7 +345,7 @@ HABLOG.CSV
 
 The SD logging system records full-resolution sensor and mission data, including environmental parameters, GPS information, flight phase, altitude information, sensor health, and LoRa transmission status.
 
-Example data categories include:
+Example data categories include :
 
 ```text
 millis
