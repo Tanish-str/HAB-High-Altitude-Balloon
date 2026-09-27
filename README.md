@@ -1,210 +1,186 @@
-# 🚀 HAB Flight Computer Firmware
+# 🚀 HAB01 — Flight Computer & Hardware
 
-> Embedded flight computer firmware for a **High Altitude Balloon (HAB)** mission built using **Arduino Nano** and the **Arduino IDE**. Designed for reliable environmental sensing, GPS positioning, SD card data logging, LoRa telemetry, and modular payload integration.
-
-![Arduino Nano](https://img.shields.io/badge/Arduino-Nano-blue?style=for-the-badge)
-![Language](https://img.shields.io/badge/Language-C%2FC%2B%2B-success?style=for-the-badge)
-![Platform](https://img.shields.io/badge/Platform-Arduino%20IDE-orange?style=for-the-badge)
-![LoRa](https://img.shields.io/badge/Communication-LoRa-green?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+> Onboard flight computer and telemetry hardware for the **HAB01 High Altitude Balloon mission**. The system acquires environmental, motion, GPS, and power data, stores full-resolution telemetry locally, and transmits compact telemetry packets to the ground station using LoRa.
 
 ---
 
-# 📖 Overview
+## 📖 Overview
 
-The **HAB Flight Computer** is the onboard embedded system responsible for acquiring, processing, logging, and transmitting telemetry during a High Altitude Balloon (HAB) mission.
+The **HAB01 Flight Computer** is the onboard embedded system responsible for collecting, processing, logging, and transmitting telemetry throughout the High Altitude Balloon mission.
 
-The system is built around an **Arduino Nano**, which interfaces with multiple environmental sensors, a GPS receiver, an SD card module, and an **EBYTE E32-433T30D LoRa module**.
+The system is built around an **Arduino Nano** and integrates:
 
-The firmware continuously collects sensor data, performs onboard calculations such as altitude estimation, climb-rate calculation, temperature gradient, sensor health monitoring, and flight-phase detection, while simultaneously storing full-resolution telemetry data on an SD card and transmitting compact telemetry packets through LoRa.
+* Environmental sensors
+* GPS receiver
+* Accelerometer and gyroscope
+* Internal and external temperature sensors
+* UV sensor
+* Battery voltage monitoring
+* MicroSD card storage
+* EBYTE E32-433T30D LoRa telemetry
 
-The architecture is designed to remain modular, allowing additional sensors and payload peripherals to be integrated with minimal modifications.
+The flight computer performs onboard calculations such as:
+
+* Pressure altitude estimation
+* GPS altitude tracking
+* Best-available altitude selection
+* Climb-rate calculation
+* Temperature difference
+* Temperature gradient
+* Acceleration magnitude
+* Sensor health monitoring
+* GPS fix monitoring
+* Flight-phase detection
+
+Telemetry is simultaneously:
+
+1. Logged locally to the onboard microSD card
+2. Encoded into compact binary packets
+3. Transmitted to the ground station through LoRa
+
+The architecture is designed to remain modular so additional sensors and payload systems can be integrated in future mission iterations.
 
 ---
 
-# 🎯 Project Objectives
+# 🎯 Mission Objectives
+
+The flight computer is designed to:
 
 * Acquire environmental data in real time
 * Track payload position using GPS
-* Estimate altitude using pressure and GPS data
+* Estimate and monitor altitude
 * Monitor acceleration and angular motion
 * Monitor battery voltage
-* Log telemetry locally to an SD card
+* Log telemetry locally
 * Transmit telemetry over LoRa
-* Detect different flight phases
+* Detect flight phases
 * Monitor sensor health
-* Provide reliable embedded software for HAB missions
-* Maintain a modular and scalable firmware architecture
+* Detect invalid or stale sensor readings
+* Provide reliable onboard data during flight
+* Maintain a modular hardware architecture
 * Support future payload expansion
 
 ---
 
-# 🛰 System Architecture
+# 🛰️ Hardware Architecture
 
 ```text
-                     +---------------------------+
-                     |     Arduino Nano          |
-                     |     Flight Computer       |
-                     +------------+--------------+
-                                  |
-       +--------------------------+--------------------------+
-       |             |            |            |             |
-       ▼             ▼            ▼            ▼             ▼
- Environmental      GPS         MPU6050      SD Card       Battery
-    Sensors       NEO-8M      Accel/Gyro     Logging       Monitor
-       |             |            |            |             |
-       +-------------+------------+------------+-------------+
-                                  |
-                                  ▼
-                         Telemetry Processing
-                                  |
-                     +------------+-------------+
-                     |                          |
-                     ▼                          ▼
-                SD Card Log               E32-433T30D
-                HABLOG.CSV                    LoRa
-                                                 |
+                         ┌──────────────────────────┐
+                         │      Arduino Nano        │
+                         │      Flight Computer     │
+                         └────────────┬─────────────┘
+                                      │
+          ┌───────────────┬───────────┼───────────┬───────────────┐
+          │               │           │           │               │
+          ▼               ▼           ▼           ▼               ▼
+     BMP180 / AHT10     NEO-8M      MPU6050    DS18B20 ×2      GUVA-S12SD
+     Environmental       GPS       Accel/Gyro   Temperature       UV
+       Sensors
+          │               │           │           │               │
+          └───────────────┴───────────┼───────────┴───────────────┘
+                                      │
+                                      ▼
+                             Telemetry Processing
+                                      │
+                         ┌────────────┴────────────┐
+                         │                         │
+                         ▼                         ▼
+                   MicroSD Card             E32-433T30D
+                   HABLOG.CSV                   LoRa
+                                                 │
+                                                 │ RF
                                                  ▼
                                       Ground Station Receiver
+                                                 │
+                                                 ▼
+                                          Serial / Dashboard
 ```
 
 ---
 
-# ✨ Features
+# 🔧 Hardware Components
 
-* Arduino Nano-based flight computer
-* Real-time environmental sensing
-* GPS data acquisition using NMEA
-* LoRa telemetry communication
-* Local SD card telemetry logging
-* I²C sensor integration
-* SoftwareSerial GPS communication
-* Hardware UART LoRa communication
-* Battery voltage monitoring
-* Flight-phase detection
-* Altitude source selection
-* Sensor health monitoring
-* GPS fix freshness monitoring
-* Altitude sanity checking
-* Climb-rate calculation
-* Temperature difference and gradient calculation
-* Compact binary LoRa telemetry packets
-* XOR checksum validation
-* Modular sensor architecture
-* Designed for High Altitude Balloon missions
+| Component                   | Purpose                                        |
+| --------------------------- | ---------------------------------------------- |
+| **Arduino Nano**            | Main flight computer                           |
+| **EBYTE E32-433T30D**       | Long-range LoRa telemetry                      |
+| **NEO-8M GPS**              | Position, altitude, speed and satellite data   |
+| **BMP180**                  | Atmospheric pressure, temperature and altitude |
+| **AHT10**                   | Temperature and relative humidity              |
+| **MPU6050**                 | 3-axis acceleration and gyroscope              |
+| **DS18B20 ×2**              | Internal and external temperature              |
+| **GUVA-S12SD**              | UV sensing                                     |
+| **MicroSD Card Module**     | Local telemetry storage                        |
+| **Battery Voltage Divider** | Battery voltage measurement                    |
 
 ---
 
-# 🔧 Hardware Used
+# 📡 Communication Architecture
 
-| Hardware                | Purpose                          |
-| ----------------------- | -------------------------------- |
-| Arduino Nano            | Main Flight Computer             |
-| EBYTE E32-433T30D       | LoRa Telemetry Module            |
-| NEO-8M GPS              | GPS Positioning                  |
-| BMP180                  | Pressure, Temperature & Altitude |
-| AHT10                   | Temperature & Humidity           |
-| MPU6050                 | 3-Axis Accelerometer & Gyroscope |
-| DS18B20 ×2              | Internal & External Temperature  |
-| GUVA-S12SD              | UV Sensor                        |
-| MicroSD Card Module     | Local Telemetry Logging          |
-| Battery Voltage Divider | Battery Monitoring               |
-
----
-
-# 📡 Firmware Responsibilities
-
-The flight computer performs the following tasks:
-
-* Initialize all sensors and peripherals
-* Read pressure and temperature from BMP180
-* Read temperature and humidity from AHT10
-* Read acceleration and gyroscope data from MPU6050
-* Read internal and external temperatures using DS18B20 sensors
-* Measure UV intensity using the analog UV sensor
-* Monitor battery voltage
-* Acquire GPS position, altitude, speed, and satellite information
-* Calculate altitude and climb rate
-* Calculate temperature difference and temperature gradient
-* Determine the current flight phase
-* Monitor sensor health
-* Log full-resolution telemetry to the SD card
-* Generate compact binary telemetry packets
-* Calculate telemetry packet checksum
-* Transmit telemetry over the E32 LoRa module
-
----
-
-# 📦 Telemetry Parameters
-
-The firmware supports logging and transmission of:
-
-* Mission Time
-* BMP180 Temperature
-* Atmospheric Pressure
-* Pressure Altitude
-* Altitude Validity
-* Altitude Source
-* MPU6050 X/Y/Z Acceleration
-* Acceleration Magnitude
-* MPU6050 X/Y/Z Gyroscope
-* AHT10 Temperature
-* Relative Humidity
-* Dew Point
-* Internal Temperature
-* External Temperature
-* Temperature Difference
-* Temperature Gradient
-* UV Index
-* Battery Voltage
-* Current Flight Phase
-* Maximum Altitude
-* Best Altitude
-* GPS Latitude
-* GPS Longitude
-* GPS Altitude
-* GPS Speed
-* GPS Satellite Count
-* GPS Fix Status
-* Sensor Health Status
-* LoRa Transmission Status
-* LoRa Transmission Skip Count
-
-The telemetry packet uses a compact binary structure with synchronization bytes and an XOR checksum for basic packet integrity verification.
-
----
-
-# 📂 Repository Structure
+The HAB01 telemetry system uses the following communication path:
 
 ```text
-HAB-High-Altitude-Balloon
-│
-├── HAB_Flight_Computer/
-│   └── HAB_Flight_Computer.ino
-│
-├── Arduino/
-│   ├── SD_Logger/
-│   ├── Receiver_Test/
-│   └── LoRa_Test/
-│
-├── Documentation/
-│   ├── Images/
-│   ├── Wiring_Diagram.png
-│   ├── BlockDiagram.png
-│   └── Pinout.png
-│
-├── Hardware/
-│
-├── LICENSE
-│
-└── README.md
+┌─────────────────────┐
+│   Flight Computer   │
+│    Arduino Nano     │
+└──────────┬──────────┘
+           │
+           │ Binary Telemetry
+           ▼
+┌─────────────────────┐
+│  E32-433T30D LoRa   │
+│      Transmitter    │
+└──────────┬──────────┘
+           │
+           │ 433 MHz RF Link
+           ▼
+┌─────────────────────┐
+│   Ground Station    │
+│    Arduino Uno      │
+└──────────┬──────────┘
+           │
+           │ USB Serial / CSV
+           ▼
+┌─────────────────────┐
+│    Serial Bridge    │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ Backend + Database  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ Live HAB Dashboard  │
+└─────────────────────┘
 ```
+
+The onboard flight computer is therefore the **source of truth for flight telemetry**, while the ground station receives and forwards that telemetry to the software system.
 
 ---
 
-# ⚙️ Arduino Nano Interfaces
+# 🔌 Arduino Nano Pin Configuration
 
-The firmware makes use of:
+| Nano Pin    | Function              |
+| ----------- | --------------------- |
+| **D0 / RX** | E32 LoRa TX → Nano RX |
+| **D1 / TX** | Nano TX → E32 LoRa RX |
+| **D2**      | GPS RX                |
+| **D3**      | GPS TX                |
+| **D4**      | Internal DS18B20      |
+| **D5**      | External DS18B20      |
+| **D6**      | E32 AUX               |
+| **D7**      | LoRa TX Status LED    |
+| **D10**     | MicroSD Card CS       |
+| **A0**      | GUVA-S12SD UV Sensor  |
+| **A1**      | Battery Voltage       |
+| **A4**      | I²C SDA               |
+| **A5**      | I²C SCL               |
+
+### Interfaces Used
+
+The flight computer uses:
 
 * I²C
 * SPI
@@ -215,137 +191,407 @@ The firmware makes use of:
 * OneWire
 * Digital inputs
 * Digital outputs
-* SD card interface
-
-### Pin Configuration
-
-| Nano Pin | Function           |
-| -------- | ------------------ |
-| D0 / RX  | E32 LoRa RX        |
-| D1 / TX  | E32 LoRa TX        |
-| D2       | GPS RX             |
-| D3       | GPS TX             |
-| D4       | Internal DS18B20   |
-| D5       | External DS18B20   |
-| D6       | E32 AUX            |
-| D7       | LoRa TX Status LED |
-| D10      | SD Card CS         |
-| A0       | UV Sensor          |
-| A1       | Battery Voltage    |
-| A4 / A5  | I²C SDA / SCL      |
-
-The current firmware defines these pins directly in the source code, including D2/D3 for GPS, D4/D5 for the two DS18B20 sensors, D6 for E32 AUX, D10 for SD card chip select, A0 for UV sensing, and A1 for battery measurement.
+* MicroSD interface
 
 ---
 
-# 🧰 Development Environment
+# 🌡️ Environmental Sensors
 
-| Software         | Version                    |
-| ---------------- | -------------------------- |
-| Arduino IDE      | 2.x                        |
-| Arduino AVR Core | Compatible Nano/ATmega328P |
-| Git              | Latest                     |
+## BMP180
 
-### Arduino Libraries
+The BMP180 provides:
 
-The firmware uses:
+* Atmospheric pressure
+* Temperature
+* Pressure-derived altitude
 
-* Wire
-* SPI
-* SD
-* OneWire
-* SoftwareSerial
-* Math
-
-These libraries are included at the beginning of the flight computer firmware.
+The firmware performs validity and sanity checks before using BMP180 altitude as the primary altitude source.
 
 ---
 
-# 🚀 Getting Started
+## AHT10
 
-## Clone the repository
+The AHT10 provides:
 
-```bash
-git clone https://github.com/<YOUR_USERNAME>/HAB-High-Altitude-Balloon.git
-```
+* Temperature
+* Relative humidity
+
+The firmware additionally calculates dew point from the measured temperature and humidity.
 
 ---
 
-## Open the project
+## DS18B20 ×2
 
-Open the Arduino sketch:
+Two DS18B20 sensors are used for thermal monitoring:
 
 ```text
-HAB_Flight_Computer.ino
+DS18B20 #1 → Internal / Payload Temperature
+
+DS18B20 #2 → External / Ambient Temperature
 ```
 
-using **Arduino IDE**.
-
----
-
-## Select Board
-
-In Arduino IDE, select:
+The firmware uses these readings to calculate:
 
 ```text
-Board: Arduino Nano
-Processor: ATmega328P
+Temperature Difference
+        =
+Internal Temperature - External Temperature
 ```
 
-Select the appropriate COM port for the connected Arduino Nano.
-
----
-
-## Install Libraries
-
-Install the required libraries through the Arduino IDE Library Manager if they are not already available:
+and:
 
 ```text
-Wire
-SPI
-SD
-OneWire
-SoftwareSerial
+Temperature Gradient
+        =
+ΔExternal Temperature / ΔTime
 ```
 
----
-
-## Build
-
-Compile the firmware using the Arduino IDE.
-
-Before uploading, verify:
-
-* Sensor wiring
-* I²C addresses
-* SD card wiring
-* GPS wiring
-* LoRa wiring
-* Battery voltage divider values
-* E32 AUX connection
-* Correct Arduino Nano processor selection
+This allows thermal behavior of the payload to be observed during ascent and descent.
 
 ---
 
-## Upload
+## GUVA-S12SD
 
-Connect the Arduino Nano through USB and upload the firmware using the Arduino IDE.
+The GUVA-S12SD provides an analog measurement associated with UV intensity.
+
+The sensor is connected to the Arduino Nano analog input:
+
+```text
+GUVA-S12SD → A0
+```
+
+The resulting value is incorporated into the telemetry stream as the UV index/value used by the firmware.
 
 ---
 
-# 📝 Data Logging
+# 🧭 Motion Sensing
 
-The flight computer stores telemetry locally on a microSD card.
+## MPU6050
 
-The primary log file is:
+The MPU6050 provides:
+
+* X-axis acceleration
+* Y-axis acceleration
+* Z-axis acceleration
+* X-axis gyroscope
+* Y-axis gyroscope
+* Z-axis gyroscope
+
+The firmware additionally calculates acceleration magnitude:
+
+```text
+Acceleration Magnitude
+=
+√(Ax² + Ay² + Az²)
+```
+
+Acceleration data can be used to identify events such as:
+
+* Launch
+* Balloon burst
+* Sudden payload movement
+* Parachute deployment
+* Landing impact
+
+---
+
+# 🛰️ GPS System
+
+The **NEO-8M GPS receiver** provides:
+
+* Latitude
+* Longitude
+* GPS altitude
+* Ground speed
+* Satellite count
+* Fix validity
+
+The GPS communicates with the Arduino Nano using SoftwareSerial.
+
+```text
+GPS RX → Nano D2
+GPS TX → Nano D3
+```
+
+The firmware also tracks GPS fix freshness so stale position data is not blindly treated as current telemetry.
+
+---
+
+# 📡 LoRa Telemetry
+
+The **EBYTE E32-433T30D** is used as the primary wireless telemetry link.
+
+### Connections
+
+```text
+Arduino Nano D1 / TX ─────► E32 RX
+
+Arduino Nano D0 / RX ◄───── E32 TX
+
+Arduino Nano D6 ◄────────── E32 AUX
+```
+
+The E32 AUX line is monitored by the firmware to determine whether the LoRa module is ready.
+
+Before transmission, the firmware waits for the module to become available.
+
+If the module remains busy beyond the configured timeout:
+
+```text
+Telemetry packet
+      ↓
+E32 busy?
+      ↓
+   YES
+      ↓
+Timeout
+      ↓
+Packet skipped
+      ↓
+Skip counter updated
+```
+
+Successful and skipped transmissions are tracked by the firmware.
+
+---
+
+# 📦 Telemetry Packet
+
+The LoRa telemetry uses a **compact binary packet format** rather than transmitting the complete CSV record over the RF link.
+
+The packet contains synchronization information and an XOR checksum for basic integrity validation.
+
+```text
+┌──────────────┐
+│ Sync Bytes   │
+├──────────────┤
+│ Telemetry    │
+│ Payload      │
+├──────────────┤
+│ XOR Checksum │
+└──────────────┘
+```
+
+The ground station validates the packet before decoding it.
+
+This allows corrupted packets to be rejected instead of being passed into the telemetry database/dashboard.
+
+---
+
+# 📊 Telemetry Parameters
+
+The flight computer supports telemetry including:
+
+### Mission
+
+* Mission time
+* Current flight phase
+* Maximum altitude
+* Best altitude
+
+### Atmospheric
+
+* BMP180 temperature
+* Atmospheric pressure
+* Pressure altitude
+* Altitude validity
+* Altitude source
+
+### Motion
+
+* X acceleration
+* Y acceleration
+* Z acceleration
+* Acceleration magnitude
+* X gyroscope
+* Y gyroscope
+* Z gyroscope
+
+### Temperature & Humidity
+
+* AHT10 temperature
+* Relative humidity
+* Dew point
+* Internal temperature
+* External temperature
+* Temperature difference
+* Temperature gradient
+
+### UV & Power
+
+* UV index
+* Battery voltage
+
+### GPS
+
+* Latitude
+* Longitude
+* GPS altitude
+* GPS speed
+* Satellite count
+* GPS fix status
+
+### System Health
+
+* Sensor health status
+* LoRa transmission status
+* LoRa transmission skip count
+* SD logging status
+
+---
+
+# 🧠 Onboard Data Processing
+
+The flight computer does more than simply read sensors. Several values are processed onboard before they are logged and transmitted.
+
+---
+
+## Altitude Source Selection
+
+The system can evaluate both pressure altitude and GPS altitude.
+
+```text
+          BMP180 Altitude
+                 │
+                 ▼
+          Validity Check
+                 │
+          ┌──────┴──────┐
+          │             │
+        Valid         Invalid
+          │             │
+          ▼             ▼
+    Use BMP180       GPS Altitude
+          │             │
+          └──────┬──────┘
+                 ▼
+          Best Altitude
+```
+
+BMP180 altitude is subjected to sanity checking before it is trusted.
+
+---
+
+## Climb Rate
+
+The firmware calculates climb rate using:
+
+```text
+Climb Rate = ΔAltitude / ΔTime
+```
+
+This value contributes to flight-phase detection and provides useful information about the balloon's ascent and descent.
+
+---
+
+## Temperature Difference
+
+```text
+Temperature Difference
+=
+Internal Temperature - External Temperature
+```
+
+This provides a simple measure of the thermal environment around the payload.
+
+---
+
+## Temperature Gradient
+
+```text
+Temperature Gradient
+=
+ΔExternal Temperature / ΔTime
+```
+
+This helps identify how rapidly the external temperature is changing throughout the flight.
+
+---
+
+## Acceleration Magnitude
+
+```text
+Acceleration Magnitude
+=
+√(Ax² + Ay² + Az²)
+```
+
+This produces a single value representing the overall acceleration magnitude.
+
+---
+
+# 🛰️ Flight Phase Detection
+
+The flight computer automatically determines the current mission phase.
+
+Supported states:
+
+```text
+PRELAUNCH
+    ↓
+ASCENT
+    ↓
+NEAR_APOGEE
+    ↓
+DESCENT
+    ↓
+LANDED
+```
+
+Flight-phase detection uses altitude and climb-rate information together with configurable thresholds.
+
+The current phase is included in the telemetry transmitted to the ground station.
+
+---
+
+# ❤️ Sensor Health Monitoring
+
+The firmware maintains a sensor-health bitmask.
+
+The monitored systems include:
+
+| System           | Health Status          |
+| ---------------- | ---------------------- |
+| BMP180           | Monitored              |
+| MPU6050          | Monitored              |
+| AHT10            | Monitored              |
+| Internal DS18B20 | Monitored              |
+| External DS18B20 | Monitored              |
+| BMP180 altitude  | Validity monitored     |
+| GPS              | Fix validity monitored |
+| SD card          | Write status monitored |
+
+This information allows the ground station and dashboard to determine whether individual sensors are operating correctly.
+
+---
+
+# 💾 SD Card Data Logging
+
+The flight computer maintains a local copy of the mission telemetry on a microSD card.
+
+Primary log:
 
 ```text
 HABLOG.CSV
 ```
 
-The SD logging system records full-resolution sensor and mission data, including environmental parameters, GPS information, flight phase, altitude information, sensor health, and LoRa transmission status.
+The onboard SD log is intended to provide a **full-resolution backup of the mission data**, independent of the LoRa link.
 
-Example data categories include :
+This is particularly important because wireless telemetry may experience:
+
+* Packet loss
+* RF interference
+* Antenna orientation issues
+* Temporary signal blockage
+* Ground-station connection problems
+
+The onboard SD card therefore acts as the primary post-flight source for complete telemetry analysis.
+
+---
+
+# 📄 Example Telemetry Fields
+
+The onboard CSV log contains fields such as:
 
 ```text
 millis
@@ -383,140 +629,324 @@ tx_skip_total
 
 ---
 
-# 📡 LoRa Telemetry
+# 🛡️ Reliability Features
 
-The **EBYTE E32-433T30D** is used as the primary wireless telemetry link.
-
-The Nano communicates with the E32 module through its hardware UART:
-
-```text
-Arduino Nano D1/TX → E32 RX
-Arduino Nano D0/RX ← E32 TX
-```
-
-The E32 AUX pin is monitored by the Nano to determine whether the module is ready for transmission.
-
-Before transmitting, the firmware waits for the E32 module to become ready. If the module remains busy beyond the configured timeout, the packet is skipped and the event is recorded.
-
----
-
-# 🛰 Flight Phase Detection
-
-The firmware automatically determines the current flight phase using altitude and climb-rate information.
-
-Supported flight phases:
-
-```text
-PRELAUNCH
-ASCENT
-NEAR_APOGEE
-DESCENT
-LANDED
-```
-
-The flight phase is determined using configurable climb-rate, altitude-window, and landing thresholds.
-
----
-
-# 🧠 Onboard Data Processing
-
-The firmware performs several calculations before logging and transmission:
-
-### Altitude Selection
-
-The system can use:
-
-```text
-BMP180 Altitude
-        ↓
-   Validity Check
-        ↓
-   GPS Altitude
-        ↓
- Best Available Altitude
-```
-
-BMP180 altitude readings are checked for physically implausible changes before being trusted.
-
-### Climb Rate
-
-```text
-Climb Rate = ΔAltitude / ΔTime
-```
-
-### Temperature Difference
-
-```text
-Temperature Difference =
-Internal Temperature - External Temperature
-```
-
-### Temperature Gradient
-
-```text
-Temperature Gradient =
-ΔExternal Temperature / ΔTime
-```
-
-### Acceleration Magnitude
-
-```text
-Acceleration Magnitude =
-√(Ax² + Ay² + Az²)
-```
-
----
-
-# ❤️ Sensor Health Monitoring
-
-A sensor health bitmask is maintained by the firmware.
-
-The system monitors:
-
-* BMP180
-* MPU6050
-* AHT10
-* Internal DS18B20
-* External DS18B20
-* BMP180 altitude validity
-* GPS fix validity
-* SD logging status
-
-This allows the ground station to determine which sensors are functioning correctly during the mission.
-
----
-
-# 🛡 Reliability Features
-
-The firmware includes several mechanisms intended to improve mission reliability:
+The flight computer incorporates several mechanisms intended to improve mission reliability:
 
 * Sensor validity flags
-* GPS fix freshness checking
+* GPS fix freshness monitoring
 * BMP180 altitude sanity checking
 * Sensor health bitmask
 * LoRa AUX monitoring
 * LoRa transmission timeout
-* Telemetry checksum
-* SD card logging
+* XOR telemetry checksum
+* Local SD card logging
 * Flight-phase state machine
-* GPS NMEA buffer overflow protection
-* Automatic fallback from BMP180 altitude to GPS altitude
-* Tracking of successful and skipped LoRa transmissions
+* GPS buffer protection
+* BMP180 → GPS altitude fallback
+* LoRa transmission success tracking
+* LoRa transmission skip tracking
+
+The system is designed so that a temporary problem with one subsystem does not automatically invalidate the rest of the telemetry system.
 
 ---
 
-# 🛣 Roadmap
+# 🧰 Development Environment
 
-* [ ] Watchdog Recovery
-* [ ] Flight Event Detection Improvements
-* [ ] Advanced Battery Health Monitoring
-* [ ] Telemetry Compression
-* [ ] Enhanced CRC Packet Validation
-* [ ] Power Optimization
-* [ ] Fault-Tolerant Sensor Recovery
-* [ ] Ground Station Telemetry Dashboard
-* [ ] Automated Post-Flight Data Analysis
-* [ ] Additional Flight Sensors
+| Software             | Configuration |
+| -------------------- | ------------- |
+| Arduino IDE          | 2.x           |
+| Arduino Board        | Arduino Nano  |
+| MCU                  | ATmega328P    |
+| Programming Language | C/C++         |
+| Version Control      | Git / GitHub  |
+
+---
+
+# 📚 Arduino Libraries
+
+The firmware uses the following Arduino libraries/interfaces:
+
+```text
+Wire
+SPI
+SD
+OneWire
+SoftwareSerial
+Math
+```
+
+Sensor-specific libraries required by the implementation should be installed through the Arduino IDE Library Manager where applicable.
+
+---
+
+# 🚀 Getting Started
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/Tanish-str/HAB-High-Altitude-Balloon.git
+cd HAB-High-Altitude-Balloon
+```
+
+---
+
+## 2. Open the Firmware
+
+Open the flight-computer sketch using Arduino IDE.
+
+```text
+HAB_Flight_Computer/
+└── HAB_Flight_Computer.ino
+```
+
+---
+
+## 3. Select the Board
+
+In Arduino IDE:
+
+```text
+Board:
+Arduino Nano
+
+Processor:
+ATmega328P
+```
+
+Select the COM port corresponding to the connected Arduino Nano.
+
+---
+
+## 4. Verify Hardware
+
+Before uploading the flight firmware, verify:
+
+* Sensor wiring
+* I²C connections
+* I²C addresses
+* SD card connections
+* GPS connections
+* LoRa connections
+* E32 AUX connection
+* Battery voltage-divider values
+* LoRa antenna connection
+* Correct Nano processor selection
+
+---
+
+## 5. Upload Firmware
+
+Connect the Arduino Nano using USB and upload the firmware.
+
+After uploading, verify the initialization messages through the Serial Monitor.
+
+---
+
+# 🔬 Hardware Bring-Up Sequence
+
+For reliable testing, hardware can be brought up incrementally:
+
+```text
+Arduino Nano
+     ↓
+I²C Bus
+     ↓
+BMP180 / AHT10 / MPU6050
+     ↓
+DS18B20
+     ↓
+GPS
+     ↓
+SD Card
+     ↓
+LoRa
+     ↓
+Complete Telemetry System
+```
+
+Testing subsystems individually makes it easier to identify wiring, communication, or sensor initialization problems before integrating the complete flight computer.
+
+---
+
+# 🧪 Ground Testing
+
+Before flight, verify the following:
+
+### Sensor Test
+
+* BMP180 returns valid pressure and temperature
+* AHT10 returns valid temperature and humidity
+* MPU6050 returns acceleration and gyroscope values
+* Both DS18B20 sensors return temperature
+* UV sensor produces an analog reading
+* Battery voltage measurement is within expected range
+
+### GPS Test
+
+* GPS receives a valid fix
+* Latitude and longitude are reasonable
+* Satellite count is updating
+* GPS freshness logic behaves correctly
+
+### SD Test
+
+* SD card initializes
+* `HABLOG.CSV` is created
+* Telemetry rows are written successfully
+* Data remains readable after power cycling
+
+### LoRa Test
+
+* E32 initializes
+* AUX status behaves correctly
+* Packets are transmitted
+* Ground station receives packets
+* Checksum validation succeeds
+* Invalid packets are rejected
+
+---
+
+# 🔗 Ground Station Integration
+
+The onboard flight computer connects to the ground system through the LoRa telemetry link.
+
+```text
+                 ONBOARD
+┌───────────────────────────────┐
+│ Arduino Nano                  │
+│                               │
+│ Sensors → Processing → LoRa   │
+└────────────────┬──────────────┘
+                 │
+                 │ 433 MHz
+                 ▼
+┌───────────────────────────────┐
+│ Ground Station Arduino Uno    │
+│                               │
+│ LoRa → Packet Validation      │
+│       → CSV Serial Output     │
+└────────────────┬──────────────┘
+                 │
+                 │ USB
+                 ▼
+┌───────────────────────────────┐
+│ Serial Bridge                 │
+│                               │
+│ CSV → Structured Telemetry    │
+└────────────────┬──────────────┘
+                 │
+                 ▼
+┌───────────────────────────────┐
+│ Backend + SQLite              │
+└────────────────┬──────────────┘
+                 │
+                 ▼
+┌───────────────────────────────┐
+│ HAB01 Mission Dashboard       │
+└───────────────────────────────┘
+```
+
+The dashboard is therefore an extension of the hardware telemetry system rather than a standalone visualization project.
+
+---
+
+# 📁 Recommended Repository Structure
+
+The overall HAB repository can be organized as:
+
+```text
+HAB-High-Altitude-Balloon/
+│
+├── firmware/
+│   │
+│   ├── flight-computer/
+│   │   └── HAB_Flight_Computer.ino
+│   │
+│   └── ground-station/
+│       └── HAB01_ground_station.ino
+│
+├── dashboard/
+│   ├── backend/
+│   ├── bridge/
+│   ├── frontend/
+│   ├── data/
+│   └── README.md
+│
+├── hardware/
+│   ├── wiring/
+│   ├── schematics/
+│   ├── pinouts/
+│   └── images/
+│
+├── documentation/
+│   ├── mission/
+│   ├── telemetry/
+│   └── testing/
+│
+├── LICENSE
+└── README.md
+```
+
+---
+
+# 🛣️ Hardware & Firmware Roadmap
+
+Future improvements include:
+
+* [ ] Watchdog-based recovery
+* [ ] Improved flight-event detection
+* [ ] Advanced battery health monitoring
+* [ ] Telemetry compression
+* [ ] Stronger CRC packet validation
+* [ ] Power optimization
+* [ ] Fault-tolerant sensor recovery
+* [ ] Additional environmental sensors
+* [ ] Improved thermal monitoring
+* [ ] Automated post-flight data analysis
+* [ ] Additional mission telemetry parameters
+
+---
+
+# 📊 Complete HAB01 System
+
+The project combines embedded hardware, wireless communication, data processing, and software visualization into a single telemetry pipeline:
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                     HAB01 MISSION                           │
+└─────────────────────────────────────────────────────────────┘
+
+        PAYLOAD / FLIGHT COMPUTER
+                   │
+       ┌───────────┴───────────┐
+       │                       │
+    Sensors                 GPS
+       │                       │
+       └───────────┬───────────┘
+                   ▼
+             Arduino Nano
+                   │
+          ┌────────┴────────┐
+          │                 │
+       SD Card             LoRa
+          │                 │
+          ▼                 ▼
+   HABLOG.CSV        Ground Station
+                            │
+                            ▼
+                      Serial Bridge
+                            │
+                            ▼
+                    Backend + SQLite
+                            │
+                            ▼
+                   Live HAB Dashboard
+```
+
+This creates an end-to-end system for:
+
+**Sensing → Processing → Logging → Transmission → Reception → Storage → Visualization**
 
 ---
 
@@ -528,6 +958,6 @@ This project is licensed under the **MIT License**.
 
 # ⭐ Acknowledgements
 
-This project was developed as part of a High Altitude Balloon (HAB) mission to design a reliable onboard flight computer capable of environmental sensing, GPS tracking, local data logging, and wireless telemetry communication.
+The HAB01 Flight Computer was developed as part of a High Altitude Balloon mission focused on building an integrated embedded telemetry and data-logging platform.
 
-The flight computer is based on the **Arduino Nano** and uses multiple environmental sensors, an **EBYTE E32-433T30D LoRa module**, GPS receiver, and microSD storage to provide an integrated telemetry and data-logging platform suitable for HAB missions.
+The system combines an **Arduino Nano**, environmental sensors, GPS, motion sensing, microSD storage, and an **EBYTE E32-433T30D LoRa communication system** to provide onboard telemetry throughout the mission.

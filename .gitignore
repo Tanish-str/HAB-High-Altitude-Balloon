@@ -1,0 +1,61 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.venv/
+venv/
+env/
+ENV/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# ==============================
+# Node / Frontend
+# ==============================
+node_modules/
+dist/
+build/
+.cache/
+.vite/
+
+# ==============================
+# Data / Database
+# ==============================
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# Keep the data directory in Git
+!data/.gitkeep
+
+# ==============================
+# Logs
+# ==============================
+*.log
+
+# ==============================
+# OS
+# ==============================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================
+# IDE / Editor
+# ==============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==============================
+# Temporary files
+# ==============================
+*.tmp
+*.temp
